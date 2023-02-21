@@ -1,0 +1,32 @@
+sudo: required
+services:
+  -docker
+
+# this means to build the services of tests for react with the dockerfile.dev
+# with the build context inside the ./client folder
+before_install:
+  - docker build -t rohit23421/react-test -f ./client/Dockerfile.dev ./client
+
+script:
+  - docker run rohit23421/react-test npm test -- --coverage
+
+# after building the react docker image we then build other images
+after_success:
+  - docker build -t rohit23421/multicontainer-client ./client
+  - docker build -t rohit23421/multicontainer-nginx ./nginx
+  - docker build -t rohit23421/multicontainer-server ./server
+  - docker build -t rohit23421.multicontainer-worker ./worker
+
+# now to push all the built images to dockerhub we need the login credentials
+# login to the docker CLI so for this we are going to use the environment tab
+# in the travis ci dashboard to add the environment variables to add the login
+# credentials like for the docker id and password
+# the DOCKER_ID is and DOCKER_PASSWORD are the environment variables name in
+# the travis dashboard we just created, so we are adding the password to the
+# stdin section of the docker login command after entering the docker id
+  - echo "$DOCKER_PASSWORD" | docker login -u "$DOCKER_ID" --password-stdin
+# pushing the images to docker hub
+  - docker push rohit23421/multicontainer-client
+  - docker push rohit23421/multicontainer-nginx
+  - docker push rohit23421/multicontainer-server
+  - docker push rohit23421/multicontainer-worker
