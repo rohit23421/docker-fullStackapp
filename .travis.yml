@@ -30,3 +30,29 @@ after_success:
   - docker push rohit23421/multicontainer-nginx
   - docker push rohit23421/multicontainer-server
   - docker push rohit23421/multicontainer-worker
+
+# confgurations specified in this section to tell travis ci to take the app
+# and set it up to aws elasticbeanstalk
+# the app name is the name of the aws elasticbeanstalk app and the env is also
+# as the same as in aws,then the bucket name is s3 as because travis takes the
+# code from our github it zips them and saves to S3 and elasticbeanstalk 
+# can use it to build the app/environment when travis ci instructs it to
+# the on tag from travis will command the aws to only build and deploy the
+# reposiroy we want to like here master, and to perform all these we need a
+# a user for travis to access aws as programatic view so we create a user with
+# awseleasticbeanstalk policy and security groups and give the accesskey and
+# secret access key for that user to travis using envrionment varibales on 
+# travis dashboard and after that we use the environment variables from traivs
+# setting dashboard in the yml file using the variables.
+deploy:
+  provider: elasticbeanstalk
+  region: ap-south-1
+  app: multi-docker
+  env: MultiDocker-env
+  bucket_name: elasticbeanstalk-ap-south-1-345364634369
+  bucket_path: docker-multi
+  on:
+    branch: master
+  access_key_id: $AWS_ACCESS_KEY
+  secret_access_key:
+    secure: $AWS_SECRET_KEY
